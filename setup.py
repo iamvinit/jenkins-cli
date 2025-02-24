@@ -1,5 +1,8 @@
 from setuptools import setup, find_packages
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 setup(
     name="jnks-cli",
     version="0.1.0",
@@ -18,9 +21,18 @@ setup(
             "jnks=jenkins_cli.cli:cli",
         ],
     },
-    python_requires='>=3.7',  # Adding minimum Python version requirement
+    python_requires='>=3.7',
     description="A command-line interface for managing Jenkins jobs",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author="Jenkins CLI Team",
+    author_email="iamvinit@users.noreply.github.com",  
+    url="https://github.com/iamvinit/jenkins-cli",  
+    project_urls={
+        "Bug Tracker": "https://github.com/iamvinit/jenkins-cli/issues",
+        "Documentation": "https://github.com/iamvinit/jenkins-cli#readme",
+        "Source Code": "https://github.com/iamvinit/jenkins-cli",
+    },
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
@@ -31,5 +43,8 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
     ],
+    keywords="jenkins, cli, devops, continuous integration, automation"
 )
