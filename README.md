@@ -1,5 +1,7 @@
 # Jenkins CLI Tool
 
+[![Release](https://github.com/iamvinit/jenkins-cli/actions/workflows/release.yml/badge.svg)](https://github.com/iamvinit/jenkins-cli/actions/workflows/release.yml)
+
 A command-line interface for managing Jenkins jobs.
 
 ## Installation
