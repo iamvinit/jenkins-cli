@@ -1,112 +1,193 @@
-# Jenkins CLI Tool
+# Jenkins CLI Tool (jnks)
 
 [![Release](https://github.com/iamvinit/jenkins-cli/actions/workflows/release.yml/badge.svg)](https://github.com/iamvinit/jenkins-cli/actions/workflows/release.yml)
 
-A command-line interface for managing Jenkins jobs.
+A command-line interface for managing Jenkins jobs. Simple, fast, and easy to use.
 
 ## Installation
 
-### Install from source
 ```bash
-pip install .
+pip install jnks-cli
 ```
 
-### Install in development mode
+## Quick Start
+
+1. Configure Jenkins connection:
 ```bash
-pip install -e .
+$ jnks config
+Jenkins server host (e.g., https://jenkins.example.com): https://jenkins.company.com
+Jenkins API token: your-api-token
+Jenkins username: your-username
+Testing connection...
+Connection successful! Configuration saved to ~/.jenkins/config.yaml
 ```
 
-## Uninstallation
-
-To remove the tool:
+2. Initialize a job (in your project directory):
 ```bash
-pip uninstall jnks-cli
+$ jnks init
+Initialized job configuration in .jenkins.yaml
+Found 3 parameters:
+  BRANCH: $BRANCH
+  ENV: staging
+  DEBUG: true
 ```
 
-## Usage
+## Commands
 
-Each command supports its own `--debug` flag for detailed logging.
+### Build (`build`)
+Trigger a Jenkins job build.
 
-### Available Commands:
-
-1. First time setup:
 ```bash
-jnks config --debug
-```
-
-2. Initialize a Jenkins job:
-```bash
-jnks init --debug [--name JOB_NAME]
-```
-
-3. Build a job:
-```bash
-# Basic build command
-jnks build
+# Basic build with parameters
+$ jnks build BRANCH=main ENV=prod
+Build #123 started
 
 # Watch console output
-jnks build --watch
+$ jnks build --watch BRANCH=main
+Build #124 started
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins in /workspace/my-job
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Checkout)
+[Pipeline] checkout
+...
 
-# Passing parameters (two equivalent ways):
-jnks build --param1=value1 --param2=value2
-jnks build param1=value1 param2=value2
-
-# Example with debug and watch:
-jnks build --debug --watch param1=value1 param2=value2
+# With debug logging
+$ jnks build --debug BRANCH=main
+2024-02-22 17:27:24 - DEBUG - Connecting to Jenkins server at https://jenkins.company.com
+2024-02-22 17:27:24 - DEBUG - Build parameters: {"BRANCH": "main", "ENV": "staging"}
+Build #125 started
 ```
 
-Note: Parameters marked with $ in .jenkins.yaml are required and must be provided during build.
-Example .jenkins.yaml:
+Parameters in `.jenkins.yaml` marked with `$` are required:
 ```yaml
 name: my-job
 parameters:
-  BRANCH: $BRANCH           # Required parameter, must be provided
-  ENV: staging             # Optional parameter with default value
-  DEBUG: true             # Optional parameter with default value
+  BRANCH: $BRANCH     # Required
+  ENV: staging        # Optional with default
+  DEBUG: true        # Optional with default
 ```
 
-To build with the above configuration:
+### Console Output (`console`)
+View build console output.
+
 ```bash
-jnks build BRANCH=main          # ENV and DEBUG use default values
-jnks build BRANCH=main ENV=prod # Override default ENV value
+# View latest build
+$ jnks console
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins in /workspace/my-job
+...
+
+# View specific build with watch
+$ jnks console --watch --build 123
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins in /workspace/my-job
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Build)
+...
 ```
 
-4. View recent builds:
+### Status (`status`)
+View recent builds status.
+
 ```bash
-jnks status --debug
+$ jnks status
+┌───────┬───────────────┬────────────┬─────────────────────┬──────────┐
+│ Build │ Name          │ Status     │ Started             │ Duration │
+├───────┼───────────────┼────────────┼─────────────────────┼──────────┤
+│ 125   │ my-job        │ SUCCESS    │ 2024-02-22 17:27:24 │ 45.2s    │
+│ 124   │ my-job        │ FAILURE    │ 2024-02-22 17:25:10 │ 32.8s    │
+│ 123   │ my-job        │ SUCCESS    │ 2024-02-22 17:20:05 │ 38.5s    │
+│ 122   │ my-job        │ SUCCESS    │ 2024-02-22 17:15:30 │ 41.1s    │
+│ 121   │ my-job        │ ABORTED    │ 2024-02-22 17:10:15 │ 12.3s    │
+└───────┴───────────────┴────────────┴─────────────────────┴──────────┘
 ```
 
-5. View console output:
+### Open in Browser (`open`)
+Open Jenkins job or build in your default browser.
+
 ```bash
-# Basic console output
-jnks console [--build BUILD_NUMBER]
+# Open job page
+$ jnks open
+Opening https://jenkins.company.com/job/my-job in browser
 
-# Watch console output in real-time
-jnks console --watch [--build BUILD_NUMBER]
-
-# With debug logging
-jnks console --debug --watch [--build BUILD_NUMBER]
+# Open specific build
+$ jnks open --build 123
+Opening https://jenkins.company.com/job/my-job/123 in browser
 ```
 
-6. Open in browser:
+## Global Options
+
+- `--debug`: Enable debug logging (available for all commands)
+
+Example debug output:
 ```bash
-# Open job in browser
-jnks open
-
-# Open specific build in browser
-jnks open --build BUILD_NUMBER
-
-# With debug logging
-jnks open --debug [--build BUILD_NUMBER]
+$ jnks status --debug
+2024-02-22 17:27:24 - DEBUG - Connecting to Jenkins server at https://jenkins.company.com
+2024-02-22 17:27:24 - DEBUG - SSL verification warnings disabled for HTTPS connection
+2024-02-22 17:27:25 - DEBUG - Getting status for job my-job
+2024-02-22 17:27:25 - DEBUG - Retrieved info for build #125
+...
 ```
 
-Note: When using --watch, the command will continue to show updates until the build completes.
+## Configuration
 
-## Debug Mode
+The tool stores configuration in two locations:
+- Global: `~/.jenkins/config.yaml` (Jenkins connection details)
+```yaml
+host: https://jenkins.company.com
+token: your-api-token
+user: your-username
+```
 
-Add `--debug` to any command to see detailed logs about:
-- API calls to Jenkins server
-- Parameter processing
-- Build status updates
-- Configuration loading
-- Error details
+- Local: `.jenkins.yaml` (Job-specific settings)
+```yaml
+name: my-job
+parameters:
+  BRANCH: $BRANCH
+  ENV: staging
+  DEBUG: true
+```
+
+## Error Handling
+
+Common error messages and solutions:
+
+1. "Jenkins job not initialized":
+   ```bash
+   $ jnks build
+   Jenkins job not initialized. Run 'jnks init' first.
+   
+   $ jnks init
+   Initialized job configuration in .jenkins.yaml
+   ```
+
+2. "Multiple builds are running":
+   ```bash
+   $ jnks console
+   Multiple builds are running. Please select a build number:
+   Build #125
+   Build #124
+   
+   $ jnks console --build 125
+   [Pipeline] Start of Pipeline...
+   ```
+
+3. "No parameters provided":
+   ```bash
+   $ jnks build
+   Error: No parameters provided. Required parameters:
+     BRANCH: $BRANCH
+   
+   Example usage:
+     jnks build BRANCH=main
+   ```
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
