@@ -1,0 +1,145 @@
+{
+  "name": "jenkins-mcp-server",
+  "description": "MCP server exposing Jenkins CLI commands as tools.",
+  "tools": [
+    {
+      "name": "jenkins_init",
+      "description": "MUST BE CALLED FIRST: Initialize Jenkins job configuration for the current project. Always pass the current working directory (CWD) as the 'cwd' parameter (use the output of 'pwd'). This tool discovers job parameters from Jenkins and creates a .jenkins.yaml file. Always call this before any other Jenkins tools. Parameters: cwd (required), job_name (optional - uses current directory name if not provided), debug (optional boolean for verbose output).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+        "cwd": {
+          "type": "string",
+          "description": "Current working directory (CWD) for project context. Always pass the output of 'pwd'."
+        },
+        "job_name": {
+            "type": ["string", "null"], 
+            "description": "Jenkins job name to initialize. If null, uses current directory name."
+          },
+          "debug": {
+            "type": "boolean", 
+            "default": false,
+            "description": "Enable debug logging for troubleshooting."
+          }
+        }
+      }
+    },
+
+    {
+      "name": "jenkins_build",
+      "description": "Trigger a Jenkins job build with parameters. Always pass the current working directory (CWD) as the 'cwd' parameter (use the output of 'pwd'). Requires jenkins_init to be called first. Parameters object should contain key-value pairs matching the job's parameter definitions (e.g., {'BRANCH': 'main', 'ENV': 'prod'}). Set watch=true to stream console output in real-time.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+        "cwd": {
+          "type": "string",
+          "description": "Current working directory (CWD) for project context. Always pass the output of 'pwd'."
+        },
+        "parameters": {
+            "type": "object",
+            "description": "Build parameters as key-value pairs. Example: {'BRANCH': 'main', 'ENV': 'staging', 'DEBUG': true}"
+          },
+          "watch": {
+            "type": "boolean", 
+            "default": false,
+            "description": "Stream console output in real-time during build."
+          },
+          "debug": {
+            "type": "boolean", 
+            "default": false,
+            "description": "Enable debug logging for troubleshooting."
+          }
+        }
+      }
+    },
+    {
+      "name": "jenkins_status",
+      "description": "Get recent build status and history for the Jenkins job. Always pass the current working directory (CWD) as the 'cwd' parameter (use the output of 'pwd'). Shows build numbers, status (SUCCESS/FAILURE/ABORTED), timestamps, and duration. Requires jenkins_init to be called first. Use limit to control how many recent builds to display.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+        "cwd": {
+          "type": "string",
+          "description": "Current working directory (CWD) for project context. Always pass the output of 'pwd'."
+        },
+        "limit": {
+            "type": "integer", 
+            "default": 10,
+            "description": "Maximum number of recent builds to display (default: 10)."
+          },
+          "debug": {
+            "type": "boolean", 
+            "default": false,
+            "description": "Enable debug logging for troubleshooting."
+          }
+        }
+      }
+    },
+    {
+      "name": "jenkins_console",
+      "description": "View console output from a Jenkins build. Always pass the current working directory (CWD) as the 'cwd' parameter (use the output of 'pwd'). Requires jenkins_init to be called first. If build_number is null, shows output from the latest build. Set watch=true for real-time streaming of active builds.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+        "cwd": {
+          "type": "string",
+          "description": "Current working directory (CWD) for project context. Always pass the output of 'pwd'."
+        },
+        "build_number": {
+            "type": ["integer", "null"],
+            "description": "Specific build number to view. If null, uses the latest build."
+          },
+          "watch": {
+            "type": "boolean", 
+            "default": false,
+            "description": "Stream console output in real-time for active builds."
+          },
+          "debug": {
+            "type": "boolean", 
+            "default": false,
+            "description": "Enable debug logging for troubleshooting."
+          }
+        }
+      }
+    },
+    {
+      "name": "jenkins_open",
+      "description": "Generate URLs to open Jenkins job or specific build in a web browser. Always pass the current working directory (CWD) as the 'cwd' parameter (use the output of 'pwd'). Requires jenkins_init to be called first. If build_number is null, opens the main job page. Returns the URL that can be opened in a browser.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+        "cwd": {
+          "type": "string",
+          "description": "Current working directory (CWD) for project context. Always pass the output of 'pwd'."
+        },
+        "build_number": {
+            "type": ["integer", "null"],
+            "description": "Specific build number to open. If null, opens the main job page."
+          },
+          "debug": {
+            "type": "boolean", 
+            "default": false,
+            "description": "Enable debug logging for troubleshooting."
+          }
+        }
+      }
+    }
+  ],
+  "prompts": [
+    {
+      "name": "default_instruction",
+      "description": "Baseline behavior for all Jenkins MCP requests",
+      "template": "You are a Jenkins automation assistant. Always respond with structured JSON containing 'result' and 'error' keys. IMPORTANT: Always call 'jenkins_init' first before using any other Jenkins tools, unless you're certain the job is already initialized. ALWAYS pass the current working directory (CWD) as the 'cwd' parameter (use the output of 'pwd') for every tool call."
+    },
+    {
+      "name": "jenkins_workflow",
+      "description": "Complete workflow guidance for Jenkins operations",
+      "template": "WORKFLOW: 1) First call 'jenkins_init' to initialize the job configuration if not done already, always passing the current working directory (CWD) as the 'cwd' parameter (use the output of 'pwd'). 2) Then call the requested Jenkins tool with proper parameters, always including 'cwd'. 3) Summarize results clearly with build numbers, status, and relevant details."
+    },
+    {
+      "name": "jenkins_open",
+      "description": "Guide for opening Jenkins pages in browser",
+      "template": "To open Jenkins in browser: 1) Ensure 'jenkins_init' was called first. 2) Call 'jenkins_open' with build_number={{build_number}} (or null for job page), always passing the current working directory (CWD) as the 'cwd' parameter (use the output of 'pwd'). 3) Return the generated URL for opening in browser."
+    }
+  ]
+}

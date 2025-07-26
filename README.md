@@ -2,13 +2,23 @@
 
 [![Release](https://github.com/iamvinit/jenkins-cli/actions/workflows/release.yml/badge.svg)](https://github.com/iamvinit/jenkins-cli/actions/workflows/release.yml)
 
-A command-line interface for managing Jenkins jobs. Simple, fast, and easy to use.
+A command-line interface for managing Jenkins jobs with MCP (Model Context Protocol) server support for AI assistants. Simple, fast, and easy to use.
+
+## Features
+
+- **CLI Tool**: Traditional command-line interface for Jenkins operations
+- **MCP Server**: Expose Jenkins functionality to AI assistants and language models
+- **Auto-Configuration**: Environment variable-based setup for seamless integration
+- **Real-time Streaming**: Watch build console output in real-time
+- **Parameter Management**: Smart handling of Jenkins job parameters
 
 ## Installation
 
 ```bash
 pip install jnks-cli
 ```
+
+This installs the `jnks` CLI tool with integrated MCP server support.
 
 ## Quick Start
 
@@ -31,6 +41,99 @@ Found 3 parameters:
   ENV: staging
   DEBUG: true
 ```
+
+## MCP Server (Model Context Protocol)
+
+This package includes an MCP server that exposes Jenkins operations to AI assistants like **Cursor**, **VS Code Copilot**, and other MCP-compatible tools.
+
+### Multi-Project Support & Project Context
+
+**Always pass the current working directory (CWD) as the `cwd` parameter to every MCP tool call.**
+
+- The CWD should be set to your project root (use the output of `pwd`).
+- This enables seamless multi-project usage and ensures Jenkins operations are performed in the correct context.
+- Most AI tools (Cursor, Copilot, etc.) allow you to set the `cwd` in their MCP server configuration. See examples below.
+
+**Do not call MCP tools without specifying the correct CWD/project context.**
+
+### Setup for AI Tools (with CWD)
+
+1. **Configure Jenkins credentials** via environment variables:
+```bash
+export JENKINS_HOST=https://jenkins.company.com
+export JENKINS_USER=your-username
+export JENKINS_TOKEN=your-api-token
+```
+
+2. **Configure your AI tool** to use the MCP server:
+
+#### For Cursor
+Add to your Cursor settings:
+```json
+{
+  "mcp": {
+    "servers": {
+      "jenkins": {
+        "command": "jnks",
+        "args": ["mcp"],
+    "cwd": "/path/to/your/project"  // Always set to your project root (output of `pwd`)
+      }
+    }
+  }
+}
+```
+
+#### For VS Code Copilot
+Add to your VS Code workspace settings:
+```json
+{
+  "mcp.servers": [
+    {
+      "name": "jenkins",
+      "command": "jnks",
+      "args": ["mcp"],
+    "cwd": "${workspaceFolder}"  // VS Code will substitute this with your project root
+    }
+  ]
+}
+```
+
+
+3. **Start using Jenkins in your AI conversations** (the AI assistant will automatically use the correct MCP tools):
+   - "Initialize Jenkins for this project"
+   - "Build the main branch with ENV=staging"
+   - "Show me the latest build status"
+   - "Get console output from build #123"
+
+**Important:**
+- The MCP server requires the current working directory (`cwd`) for every request. This is how it supports multiple projects and ensures the correct `.jenkins.yaml` is used.
+- You do **not** need to specify individual MCP tool names or parameters manually—just ensure your AI tool passes the correct `cwd`.
+
+#### Manual Configuration
+If environment variables are not set, the server will prompt for configuration on first start.
+
+### Integration Examples
+
+#### With Claude Desktop
+Add to your `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "jenkins": {
+      "command": "jnks",
+      "args": ["mcp"],
+      "env": {
+        "JENKINS_HOST": "https://jenkins.company.com",
+        "JENKINS_USER": "your-username",
+        "JENKINS_TOKEN": "your-api-token"
+      }
+    }
+  }
+}
+```
+
+#### With Other MCP Clients
+The server follows standard MCP protocol and can be used with any MCP-compatible client. Always ensure the `cwd` parameter is set to your project root (output of `pwd`).
 
 ## Commands
 
@@ -187,6 +290,30 @@ Common error messages and solutions:
    Example usage:
      jnks build BRANCH=main
    ```
+
+## Quick Reference
+
+### CLI Commands
+```bash
+jnks config                    # Configure Jenkins connection
+jnks init                      # Initialize job in current directory
+jnks build BRANCH=main         # Build with parameters
+jnks status                    # Show recent build status
+jnks console                   # View console output
+jnks open                      # Open in browser
+```
+
+### MCP Server
+```bash
+jnks mcp                       # Start MCP server (AI tools will connect and pass CWD automatically)
+```
+
+### Environment Variables
+```bash
+export JENKINS_HOST=https://jenkins.company.com
+export JENKINS_USER=your-username
+export JENKINS_TOKEN=your-api-token
+```
 
 ## License
 

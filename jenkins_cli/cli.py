@@ -147,7 +147,8 @@ from .commands import (
     build,
     status,
     console,
-    open_cmd
+    open_cmd,
+    mcp_cmd
 )
 
 @click.group()
@@ -162,6 +163,7 @@ cli.add_command(build)
 cli.add_command(status)
 cli.add_command(console)
 cli.add_command(open_cmd)  # Let the command use its own name from decorator
+cli.add_command(mcp_cmd.mcp)
 
 if __name__ == '__main__':
     cli()

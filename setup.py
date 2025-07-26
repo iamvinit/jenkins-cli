@@ -15,6 +15,8 @@ setup(
         "requests>=2.25.0",       # For HTTP requests with SSL support
         "tabulate>=0.9.0",       # For table formatting
         "urllib3>=2.0.0",        # For SSL warning management
+        # MCP dependencies (optional for MCP server functionality)
+        # Note: MCP server can run without these but may have limited functionality
     ],
     entry_points={
         "console_scripts": [
